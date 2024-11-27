@@ -1,7 +1,7 @@
 
 debug:
-	uv pip install -e .
-	uv run cli --help
+	cargo build
+	# cargo run
 
 
 	
