@@ -5,9 +5,9 @@ from typing import Annotated
 
 import httpx
 import typer
-from git import Repo
 
 from scaffolding.cli.template import Template, load_template
+from scaffolding.libs import git
 
 app = typer.Typer()
 
@@ -88,24 +88,4 @@ def create(
         case _:
             pass
 
-    # create git repo
-    repo = Repo.init(project.folder)
-    repo.git.branch("-m", "main")
-
-    # check user config
-    config = repo.config_reader()
-    with repo.config_writer() as writer:
-        if not config.has_option("user", "name"):
-            if name := typer.prompt("What's your name?"):
-                writer.set_value("user", "name", name)
-            else:
-                raise typer.Abort()
-        if not config.has_option("user", "email"):
-            if email := typer.prompt("What's your email?"):
-                writer.set_value("user", "email", email)
-            else:
-                raise typer.Abort()
-
-    # initial commit
-    repo.git.add(".")
-    repo.git.commit("-m", "initial commit")
+    git.create_the_initial_commit(project.folder)
