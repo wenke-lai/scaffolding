@@ -14,7 +14,9 @@ dependencies = [
 cli = "scaffolding.cli.main:app"
 
 [tool.uv]
-dev-dependencies = []
+dev-dependencies = [
+    "pytest>=8.3.3",
+]
 
 [tool.uv.workspace]
 members = ["foo"]
