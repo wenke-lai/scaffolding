@@ -9,7 +9,7 @@ dependencies = [
 ]
 
 [project.scripts]
-cli = "scaffolding.cli.main:main"
+cli = "scaffolding.cli.main:app"
 
 [tool.uv]
 dev-dependencies = []

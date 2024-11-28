@@ -8,5 +8,6 @@ def foo():
     print("foo")
 
 
-def main():
-    app()
+@app.command()
+def bar():
+    print("bar")
