@@ -7,6 +7,7 @@ import httpx
 import typer
 
 from scaffolding.cli.template import Template, load_template
+from scaffolding.libs import git
 
 app = typer.Typer()
 
@@ -86,12 +87,5 @@ def create(
                     fw.write(content)
         case _:
             pass
-    subprocess.run(["git", "init"], cwd=project.folder)
-    subprocess.run(["git", "branch", "-m", "main"], cwd=project.folder)
-    # todo: may not create user.name and user.email
-    subprocess.run(["git", "config", "user.name", "demo"], cwd=project.folder)
-    subprocess.run(
-        ["git", "config", "user.email", "demo@example.com"], cwd=project.folder
-    )
-    subprocess.run(["git", "add", "."], cwd=project.folder)
-    subprocess.run(["git", "commit", "-m", "initial commit"], cwd=project.folder)
+
+    git.create_the_initial_commit(project.folder)
