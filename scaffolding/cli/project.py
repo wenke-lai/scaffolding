@@ -5,6 +5,7 @@ from typing import Annotated
 
 import httpx
 import typer
+from git import Repo
 
 from scaffolding.cli.template import Template, load_template
 
@@ -86,12 +87,25 @@ def create(
                     fw.write(content)
         case _:
             pass
-    subprocess.run(["git", "init"], cwd=project.folder)
-    subprocess.run(["git", "branch", "-m", "main"], cwd=project.folder)
-    # todo: may not create user.name and user.email
-    subprocess.run(["git", "config", "user.name", "demo"], cwd=project.folder)
-    subprocess.run(
-        ["git", "config", "user.email", "demo@example.com"], cwd=project.folder
-    )
-    subprocess.run(["git", "add", "."], cwd=project.folder)
-    subprocess.run(["git", "commit", "-m", "initial commit"], cwd=project.folder)
+
+    # create git repo
+    repo = Repo.init(project.folder)
+    repo.git.branch("-m", "main")
+
+    # check user config
+    config = repo.config_reader()
+    with repo.config_writer() as writer:
+        if not config.has_option("user", "name"):
+            if name := typer.prompt("What's your name?"):
+                writer.set_value("user", "name", name)
+            else:
+                raise typer.Abort()
+        if not config.has_option("user", "email"):
+            if email := typer.prompt("What's your email?"):
+                writer.set_value("user", "email", email)
+            else:
+                raise typer.Abort()
+
+    # initial commit
+    repo.git.add(".")
+    repo.git.commit("-m", "initial commit")
