@@ -1,0 +1,11 @@
+[project]
+language = "python"
+readme = true
+license = "MIT"
+git = true
+
+[dependencies]
+
+[dev-dependencies]
+ruff = "latest"
+pytest = "latest"

@@ -1,13 +1,7 @@
 import typer
 
+from scaffolding.cli import project, template
+
 app = typer.Typer()
-
-
-@app.command()
-def foo():
-    print("foo")
-
-
-@app.command()
-def bar():
-    print("bar")
+app.add_typer(project.app, name="project")
+app.add_typer(template.app, name="template")
