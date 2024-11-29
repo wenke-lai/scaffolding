@@ -26,7 +26,18 @@ def initialize_project_folder(monkeypatch):
     shutil.rmtree(test_folder)
 
 
-def test_basic_git_init(folder: Path):
+@pytest.fixture(scope="function")
+def original_repo_user():
+    repo = Repo(".")
+    reader = repo.config_reader()
+    user = reader.get_value("user", "name")
+    email = reader.get_value("user", "email")
+    yield user, email
+
+
+def test_basic_git_init(folder: Path, original_repo_user):
+    original_user, original_email = original_repo_user
+
     create_the_initial_commit(folder)
     assert (folder / ".git").exists()
 
@@ -34,3 +45,10 @@ def test_basic_git_init(folder: Path):
     assert not repo.bare
     assert repo.active_branch.name == "main"
     assert len(list(repo.iter_commits())) > 0
+
+    reader = repo.config_reader()
+    user = reader.get_value("user", "name")
+    email = reader.get_value("user", "email")
+
+    assert user != original_user, "this project was overwritten by test"
+    assert email != original_email, "this project was overwritten by test"
