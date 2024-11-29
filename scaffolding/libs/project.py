@@ -9,6 +9,7 @@ import httpx
 import typer
 
 from ..cli.template import Template, load_template
+from .license import create_license_file
 
 logger = logging.getLogger(__name__)
 
@@ -81,18 +82,7 @@ class PythonProjectBuilder(ProjectBuilder):
     def create_license_file(self, license: str):
         logger.debug(f"builder: creating LICENSE {license}")
         license_file = self.project.folder.joinpath("LICENSE")
-        match license.upper():
-            case "MIT":
-                response = httpx.get("https://api.github.com/licenses/mit", timeout=10)
-                if response.status_code == 200:
-                    data = response.json()
-                    with open(license_file, "w") as fw:
-                        fw.write(data["body"])
-                else:
-                    print(f"Failed to download MIT license: {response.status_code}")
-                    raise typer.Abort()
-            case _:
-                pass
+        create_license_file(license_file, license.lower())
 
     def create_gitignore_file(self, skip_if_exists: bool = True):
         logger.debug("builder: creating .gitignore")
