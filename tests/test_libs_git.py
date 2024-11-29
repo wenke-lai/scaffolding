@@ -14,7 +14,7 @@ def initialize_project_folder(monkeypatch):
     monkeypatch.setattr("typer.prompt", lambda _: next(inputs))
 
     # Create test folder
-    test_folder = Path("test_repo")
+    test_folder = Path("/tmp/test_repo")
     test_folder.mkdir()
 
     # Add a README.md file for initial commit
