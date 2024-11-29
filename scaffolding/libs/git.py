@@ -76,7 +76,7 @@ class RepositoryDirector:
         )
 
 
-def create_a_initial_commit(folder: Path) -> Repository:
+def create_the_initial_commit(folder: Path) -> Repository:
     builder = GitBuilder()
     director = RepositoryDirector(builder)
     return director.create_a_initial_commit(folder)

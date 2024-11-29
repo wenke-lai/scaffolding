@@ -3,7 +3,7 @@ from enum import StrEnum
 import tomllib
 import typer
 
-from scaffolding.cli.constant import TEMPLATE_SUFFIX, TEMPLATES
+from .constant import TEMPLATE_SUFFIX, TEMPLATES
 
 app = typer.Typer()
 
