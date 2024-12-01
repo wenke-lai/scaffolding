@@ -2,65 +2,55 @@ import shutil
 from pathlib import Path
 from unittest.mock import Mock, patch
 
+import pytest
 from faker import Faker
 
-from scaffolding.libs.license import create_license_file, get_license, list_licenses
-
-fake = Faker()
-
-
-def test_list_licenses():
-    licenses = [
-        {"key": fake.word(), "name": fake.name(), "url": fake.url()},
-        {"key": fake.word(), "name": fake.name(), "url": fake.url()},
-    ]
-
-    with patch("httpx.get", return_value=Mock(json=lambda: licenses)) as mock_get:
-        result = list(list_licenses())
-        for index, license in enumerate(licenses):
-            assert set(result[index].keys()) == {"key", "url"}
-            assert result[index]["key"] == license["key"]
-            assert result[index]["url"] == license["url"]
-        mock_get.assert_called_once_with("https://api.github.com/licenses", timeout=10)
+from scaffolding.libs import license
+from scaffolding.libs.license import builders
 
 
-def test_get_license():
-    url = fake.url()
-    license = {
-        "key": fake.word(),
-        "name": fake.name(),
-        "implementation": fake.sentence(),
-        "body": fake.paragraph(),
-    }
-
-    with patch("httpx.get", return_value=Mock(json=lambda: license)) as mock_get:
-        result = get_license(url=url)
-        assert set(result.keys()) == {"body", "implementation"}
-        assert license["implementation"] == result["implementation"]
-        assert license["body"] == result["body"]
-        mock_get.assert_called_once_with(url, timeout=10)
-
-
-def test_create_license_file():
+@pytest.fixture(scope="function", name="folder")
+def mock_folder():
     try:
-        folder = Path("/tmp/test_repo")
+        folder = Path("/tmp/test-license")
+        assert not folder.exists()
         folder.mkdir(parents=True, exist_ok=True)
-        license_file = folder / "LICENSE"
 
-        license = {
-            "key": fake.word(),
-            "name": fake.name(),
-            "implementation": fake.sentence(),
-            "body": fake.paragraph(),
-        }
-        with patch("httpx.get", return_value=Mock(json=lambda: license)) as mock_get:
-            create_license_file(license_file, fake.word())
-            mock_get.assert_called_once()
-
-        assert license_file.is_file()
-        with open(license_file, "r") as fr:
-            content = fr.read()
-            assert content == license["body"]
-
+        yield folder
     finally:
         shutil.rmtree(folder)
+
+
+def test_get_license_builder():
+    builder = license.get_builder("mit")
+    assert builder == builders.MITLicenseBuilder
+
+    builder = license.get_builder("apache")
+    assert builder == builders.Apache2LicenseBuilder
+
+    builder = license.get_builder("gpl")
+    assert builder == builders.GPL3LicenseBuilder
+
+    with pytest.raises(ValueError):
+        license.get_builder("unknown")
+
+
+def test_license_processor(folder: Path):
+    builder = builders.MITLicenseBuilder()
+    with (
+        patch.object(builder, "download") as download_mock,
+        patch.object(builder, "implement") as implement_mock,
+        patch.object(builder, "save") as save_mock,
+    ):
+        # the process method is chainable, so we need to mock the return value
+        download_mock.return_value = builder
+        implement_mock.return_value = builder
+        save_mock.return_value = builder
+
+        # call the method
+        license.process(builder, folder, "Sherlock Holmes")
+
+        # assert the mocks were called
+        assert download_mock.call_count == 1
+        assert implement_mock.call_count == 1
+        assert save_mock.call_count == 1

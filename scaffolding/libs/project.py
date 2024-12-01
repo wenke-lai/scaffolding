@@ -9,7 +9,7 @@ import httpx
 import typer
 
 from ..cli.template import Template, load_template
-from .license import create_license_file
+from . import license
 
 logger = logging.getLogger(__name__)
 
@@ -79,10 +79,10 @@ class PythonProjectBuilder(ProjectBuilder):
         with open(readme_file, "w") as fw:
             fw.write(f"# {self.project.name.capitalize()}")
 
-    def create_license_file(self, license: str):
-        logger.debug(f"builder: creating LICENSE {license}")
-        license_file = self.project.folder.joinpath("LICENSE")
-        create_license_file(license_file, license.lower())
+    def create_license_file(self, license_key: str):
+        logger.debug(f"builder: creating LICENSE {license_key}")
+        builder = license.get_builder(license_key)
+        license.process(builder(), self.project.folder, self.project.name)
 
     def create_gitignore_file(self, skip_if_exists: bool = True):
         logger.debug("builder: creating .gitignore")
@@ -137,7 +137,7 @@ class ProjectDirector:
         self.builder.create_gitignore_file()
         if config["project"]["readme"]:
             self.builder.create_readme_file()
-        if config["project"]["license"]:
-            self.builder.create_license_file(config["project"]["license"])
+        if license_key := config["project"]["license"]:
+            self.builder.create_license_file(license_key)
 
         return self.builder.build()

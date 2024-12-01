@@ -18,4 +18,3 @@ dev-dependencies = [
     "faker>=33.1.0",
     "pytest>=8.3.3",
 ]
-
