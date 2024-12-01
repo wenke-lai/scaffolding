@@ -9,6 +9,7 @@ import httpx
 import typer
 
 from ..cli.template import Template, load_template
+from . import license
 
 logger = logging.getLogger(__name__)
 
@@ -78,21 +79,10 @@ class PythonProjectBuilder(ProjectBuilder):
         with open(readme_file, "w") as fw:
             fw.write(f"# {self.project.name.capitalize()}")
 
-    def create_license_file(self, license: str):
-        logger.debug(f"builder: creating LICENSE {license}")
-        license_file = self.project.folder.joinpath("LICENSE")
-        match license.upper():
-            case "MIT":
-                response = httpx.get("https://api.github.com/licenses/mit", timeout=10)
-                if response.status_code == 200:
-                    data = response.json()
-                    with open(license_file, "w") as fw:
-                        fw.write(data["body"])
-                else:
-                    print(f"Failed to download MIT license: {response.status_code}")
-                    raise typer.Abort()
-            case _:
-                pass
+    def create_license_file(self, license_key: str):
+        logger.debug(f"builder: creating LICENSE {license_key}")
+        builder = license.get_builder(license_key)
+        license.process(builder(), self.project.folder, self.project.name)
 
     def create_gitignore_file(self, skip_if_exists: bool = True):
         logger.debug("builder: creating .gitignore")
@@ -147,7 +137,7 @@ class ProjectDirector:
         self.builder.create_gitignore_file()
         if config["project"]["readme"]:
             self.builder.create_readme_file()
-        if config["project"]["license"]:
-            self.builder.create_license_file(config["project"]["license"])
+        if license_key := config["project"]["license"]:
+            self.builder.create_license_file(license_key)
 
         return self.builder.build()
