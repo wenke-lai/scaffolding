@@ -1,25 +1,27 @@
-from dataclasses import dataclass
 from pathlib import Path
 
+from pydantic import BaseModel, Field
 
-@dataclass
-class Project:
+
+class Project(BaseModel):
+    language: str | None = None
+    readme: bool | None = None
+    license: str | None = None
+    git: bool | None = None
+
+
+class Author(BaseModel):
+    name: str | None = None
+    email: str | None = None
+
+
+class Blueprint(BaseModel):
     folder: Path
-    name: str
-    license: str
 
-
-@dataclass
-class Author:
-    name: str
-    email: str
-
-
-@dataclass
-class Blueprint:
     project: Project
+
     author: Author
 
-    language: str
-    dependencies: list[str] | None = None
-    dev_dependencies: list[str] | None = None
+    dependencies: dict[str, str] = Field(default_factory=dict)
+
+    dev_dependencies: dict[str, str] = Field(default_factory=dict)

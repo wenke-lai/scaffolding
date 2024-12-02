@@ -1,37 +1,11 @@
-import shutil
 from pathlib import Path
 from unittest.mock import call, patch
 
 import pytest
 from git import Repo
 
+from scaffolding.core.blueprint import Blueprint
 from scaffolding.core.interfaces.git import Repository, RepositoryBuilder
-
-
-@pytest.fixture(scope="function", name="folder")
-def test_folder():
-    try:
-        folder = Path("/tmp/test_folder")
-        folder.mkdir(parents=True, exist_ok=False)
-        yield folder
-    finally:
-        shutil.rmtree(folder)
-
-
-class FakeAuthor:
-    name = "tester"
-    email = "tester@example.com"
-
-
-class FakeProject:
-    def __init__(self, folder: Path) -> None:
-        self.folder = folder
-
-
-class FakeBlueprint:
-    def __init__(self, folder: Path) -> None:
-        self.project = FakeProject(folder)
-        self.author = FakeAuthor()
 
 
 def test_repository(folder: Path):
@@ -44,9 +18,14 @@ def test_repository(folder: Path):
         repository.initialize(folder)
 
     repository.configure("user", "name", "tester")
-    assert repository.repo.config_reader().get_value("user", "name") == "tester"
+    repository.configure("user", "email", "tester@example.com")
+    with repository.repo.config_reader() as reader:
+        assert reader.get_value("user", "name") == "tester"
+        assert reader.get_value("user", "email") == "tester@example.com"
+
     repository.configure("user", "name", "new-name", overwrite_ok=False)
-    assert repository.repo.config_reader().get_value("user", "name") == "tester"
+    with repository.repo.config_reader() as reader:
+        assert reader.get_value("user", "name") == "tester"
 
     with pytest.raises(FileNotFoundError):
         repository.commit("no changes to commit")
@@ -56,8 +35,9 @@ def test_repository(folder: Path):
     assert len(list(repository.repo.iter_commits())) == 1
 
 
-def test_repository_builder(folder: Path):
-    blueprint = FakeBlueprint(folder)
+def test_repository_builder(blueprint: Blueprint):
+    blueprint.author.name = "tester"
+    blueprint.author.email = "tester@example.com"
 
     with (
         patch.object(Repository, "initialize") as initialize,
@@ -67,7 +47,7 @@ def test_repository_builder(folder: Path):
         builder = RepositoryBuilder(blueprint)
         builder.build()
     # git init
-    initialize.assert_called_once_with(folder)
+    initialize.assert_called_once_with(blueprint.folder)
     # git config user.name tester
     # git config user.email tester@example.com
     configure.assert_has_calls(

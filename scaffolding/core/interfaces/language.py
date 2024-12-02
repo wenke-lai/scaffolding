@@ -20,13 +20,13 @@ class Python(Language):
         if demo_file.is_file():
             os.remove(demo_file)
 
-    def install_dependencies(self, dependencies: list[str]) -> None:
-        if dependencies:
-            subprocess.run(["uv", "add", *dependencies], check=True, cwd=self.cwd)
+    def install_dependencies(self, dependencies: dict[str, str]) -> None:
+        args = [f"{name}=={version}" for name, version in dependencies.items()]
+        subprocess.run(["uv", "add", *args], check=True, cwd=self.cwd)
 
-    def install_dev_dependencies(self, dev_dependencies: list[str]) -> None:
-        if dev_dependencies:
-            subprocess.run(["uv", "add", *dev_dependencies], check=True, cwd=self.cwd)
+    def install_dev_dependencies(self, dev_dependencies: dict[str, str]) -> None:
+        args = [f"{name}=={version}" for name, version in dev_dependencies.items()]
+        subprocess.run(["uv", "add", *args], check=True, cwd=self.cwd)
 
 
 class LanguageBuilder:
@@ -34,13 +34,17 @@ class LanguageBuilder:
         self.blueprint = blueprint
 
     def build(self) -> None:
-        match self.blueprint.language:
+        match self.blueprint.project.language:
             case "python":
-                language = Python(cwd=self.blueprint.project.folder)
+                language = Python(cwd=self.blueprint.folder)
             case _:
-                raise ValueError(f"Unsupported language: {self.blueprint.language}")
+                raise ValueError(
+                    f"Unsupported language: {self.blueprint.project.language}"
+                )
 
         language.setup()
         language.initialize()
-        language.install_dependencies(self.blueprint.dependencies)
-        language.install_dev_dependencies(self.blueprint.dev_dependencies)
+        if self.blueprint.dependencies:
+            language.install_dependencies(self.blueprint.dependencies)
+        if self.blueprint.dev_dependencies:
+            language.install_dev_dependencies(self.blueprint.dev_dependencies)

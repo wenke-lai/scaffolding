@@ -1,11 +1,14 @@
 [project]
 language = "python"
+
 readme = true
 license = "MIT"
 git = true
 
+[author]
+
 [dependencies]
 
-[dev-dependencies]
-ruff = "latest"
-pytest = "latest"
+[dev_dependencies]
+ruff = "0.8.1"
+pytest = "8.3.4"

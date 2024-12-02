@@ -1,5 +1,5 @@
 import logging
-from configparser import NoSectionError
+from configparser import NoOptionError, NoSectionError
 from pathlib import Path
 
 from git import Repo
@@ -33,7 +33,7 @@ class Repository:
                 if overwrite_ok or not exists_value:
                     writer.set_value(section, field, value)
                 return
-            except NoSectionError:
+            except (NoSectionError, NoOptionError):
                 writer.set_value(section, field, value)
 
         logger.warning(f"Git config `{section}.{field}` already exists")
@@ -41,9 +41,21 @@ class Repository:
     def commit(self, message: str) -> None:
         if self.repo.is_dirty(untracked_files=True):
             self.repo.git.add(["."])
-            self.repo.git.commit("-m", message)
+            if self.check_user_exists():
+                self.repo.git.commit("-m", message)
+            else:
+                logger.warning("Git user not configured, skipping commit")
             return
         raise FileNotFoundError("No changes to commit")
+
+    def check_user_exists(self) -> bool:
+        with self.repo.config_reader() as reader:
+            try:
+                name = reader.get_value("user", "name")
+                email = reader.get_value("user", "email")
+                return all([name, email])
+            except (NoSectionError, NoOptionError):
+                return False
 
 
 class RepositoryBuilder:
@@ -52,7 +64,9 @@ class RepositoryBuilder:
 
     def build(self) -> None:
         repository = Repository()
-        repository.initialize(self.blueprint.project.folder)
-        repository.configure("user", "name", self.blueprint.author.name)
-        repository.configure("user", "email", self.blueprint.author.email)
+        repository.initialize(self.blueprint.folder)
+        if self.blueprint.author.name:
+            repository.configure("user", "name", self.blueprint.author.name)
+        if self.blueprint.author.email:
+            repository.configure("user", "email", self.blueprint.author.email)
         repository.commit("Initial commit")

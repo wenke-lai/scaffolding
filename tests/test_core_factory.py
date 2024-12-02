@@ -1,10 +1,6 @@
-import shutil
-from pathlib import Path
 from unittest.mock import patch
 
-import pytest
-
-from scaffolding.core import blueprint as bp
+from scaffolding.core.blueprint import Blueprint
 from scaffolding.core.factory import ProjectFactory
 from scaffolding.core.interfaces.git import RepositoryBuilder
 from scaffolding.core.interfaces.language import LanguageBuilder
@@ -12,24 +8,11 @@ from scaffolding.core.interfaces.license import LicenseBuilder
 from scaffolding.core.interfaces.project import ProjectBuilder
 
 
-@pytest.fixture(scope="function", name="blueprint")
-def blueprint():
-    try:
-        folder = Path("/tmp/test_folder")
-        yield bp.Blueprint(
-            project=bp.Project(folder=folder, name=folder.name, license="mit"),
-            author=bp.Author(name="tester", email="tester@example.com"),
-            language="python",
-        )
-    finally:
-        shutil.rmtree(folder)
-
-
-def test_project_factory(blueprint: bp.Blueprint):
-    factory = ProjectFactory(blueprint)
-
+def test_project_factory(blueprint: Blueprint):
     # create the folder cause the ProjectBuilder.create_directory method is mocked
-    blueprint.project.folder.mkdir(parents=True, exist_ok=False)
+    blueprint.folder.mkdir(parents=True, exist_ok=False)
+
+    factory = ProjectFactory(blueprint)
 
     with patch.object(ProjectBuilder, "build") as build:
         factory.create_project()

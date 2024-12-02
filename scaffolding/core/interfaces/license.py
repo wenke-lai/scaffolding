@@ -39,7 +39,8 @@ class MITLicense(License):
 
     def implement(self, fullname: str, *args, **kwargs) -> None:
         self.content = self.content.replace("[year]", str(date.today().year))
-        self.content = self.content.replace("[fullname]", fullname)
+        if fullname is not None:
+            self.content = self.content.replace("[fullname]", fullname)
 
 
 class Apache2License(License):
@@ -68,7 +69,10 @@ class LicenseBuilder:
                 license = GPL2License()
             case "GPL-3.0" | "gpl-3.0":
                 license = GPL3License()
+            case _:
+                # no license
+                return
 
         license.download()
         license.implement(fullname=self.blueprint.author.name)
-        license.save(self.blueprint.project.folder)
+        license.save(self.blueprint.folder)

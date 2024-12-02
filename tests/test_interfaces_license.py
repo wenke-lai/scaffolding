@@ -1,11 +1,8 @@
-import shutil
 from datetime import date
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-import pytest
-
-from scaffolding.core.blueprint import Author, Blueprint, Project
+from scaffolding.core.blueprint import Blueprint
 from scaffolding.core.interfaces.license import (
     Apache2License,
     GPL2License,
@@ -16,17 +13,9 @@ from scaffolding.core.interfaces.license import (
 )
 
 
-@pytest.fixture(scope="function", name="folder")
-def test_folder():
-    try:
-        folder = Path("/tmp/test-license")
-        folder.mkdir(parents=True, exist_ok=False)
-        yield folder
-    finally:
-        shutil.rmtree(folder)
-
-
 def test_license(folder: Path):
+    folder.mkdir(parents=True, exist_ok=False)
+
     license = License()
     assert license.content == ""
 
@@ -70,20 +59,7 @@ def test_gpl3_license():
     assert license.license_key == "gpl-3.0"
 
 
-def test_license_builder(folder: Path):
-    blueprint = Blueprint(
-        project=Project(
-            license="mit",
-            folder=folder,
-            name="test-project",
-        ),
-        author=Author(
-            name="tester",
-            email="tester@example.com",
-        ),
-        language="python",
-    )
-
+def test_license_builder(blueprint: Blueprint):
     builder = LicenseBuilder(blueprint=blueprint)
     with (
         patch.object(MITLicense, "download") as download,
@@ -94,4 +70,4 @@ def test_license_builder(folder: Path):
 
         download.assert_called_once()
         implement.assert_called_once_with(fullname=blueprint.author.name)
-        save.assert_called_once_with(blueprint.project.folder)
+        save.assert_called_once_with(blueprint.folder)

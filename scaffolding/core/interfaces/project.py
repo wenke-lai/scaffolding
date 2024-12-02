@@ -7,10 +7,10 @@ class Project:
     def create_directory(self, folder: Path) -> None:
         folder.mkdir(parents=True, exist_ok=False)
 
-    def create_readme(self, folder: Path, name: str) -> None:
+    def create_readme(self, folder: Path) -> None:
         readme = folder / "README.md"
         with open(readme, "w") as fw:
-            fw.write(f"# {name}")
+            fw.write(f"# {folder.name}")
 
 
 class ProjectBuilder:
@@ -19,8 +19,6 @@ class ProjectBuilder:
 
     def build(self) -> None:
         project = Project()
-        project.create_directory(self.blueprint.project.folder)
-        project.create_readme(
-            self.blueprint.project.folder,
-            self.blueprint.project.name,
-        )
+        project.create_directory(self.blueprint.folder)
+        if self.blueprint.project.readme:
+            project.create_readme(self.blueprint.folder)
