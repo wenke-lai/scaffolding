@@ -28,6 +28,13 @@ jobs:
         run: |
           uv sync
 
+      - name: Debug environment
+        run: |
+          pwd
+          ls -la
+          ls -al /tmp
+          ls -al /tmp/test_folder
+
       - name: Run tests
         env:
           GIT_CEILING_DIRECTORIES: "/tmp"
