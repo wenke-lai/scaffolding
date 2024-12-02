@@ -17,5 +17,9 @@ cli = "scaffolding.cli.main:app"
 [tool.uv]
 dev-dependencies = [
     "faker>=33.1.0",
+    "pytest-cov>=6.0.0",
     "pytest>=8.3.3",
 ]
+
+[tool.pytest.ini_options]
+addopts = "--cov=scaffolding"
