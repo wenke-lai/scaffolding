@@ -11,7 +11,7 @@ from scaffolding.core.interfaces.git import Repository, RepositoryBuilder
 @pytest.fixture(scope="function", name="folder")
 def test_folder():
     try:
-        folder = Path.cwd() / "test_folder"
+        folder = Path("/tmp/test_folder")
         folder.mkdir(parents=True, exist_ok=False)
         yield folder
     finally:
