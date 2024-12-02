@@ -5,8 +5,9 @@ from unittest.mock import patch
 import pytest
 
 from scaffolding.core import blueprint as bp
-from scaffolding.core.factories.base import ProjectFactory
+from scaffolding.core.factory import ProjectFactory
 from scaffolding.core.interfaces.git import RepositoryBuilder
+from scaffolding.core.interfaces.language import LanguageBuilder
 from scaffolding.core.interfaces.license import LicenseBuilder
 from scaffolding.core.interfaces.project import ProjectBuilder
 
@@ -18,6 +19,7 @@ def blueprint():
         yield bp.Blueprint(
             project=bp.Project(folder=folder, name=folder.name, license="mit"),
             author=bp.Author(name="tester", email="tester@example.com"),
+            language="python",
         )
     finally:
         shutil.rmtree(folder)
@@ -33,8 +35,9 @@ def test_project_factory(blueprint: bp.Blueprint):
         factory.create_project()
         assert build.call_count == 1
 
-    with pytest.raises(NotImplementedError):
+    with patch.object(LanguageBuilder, "build") as build:
         factory.create_language()
+        assert build.call_count == 1
 
     with patch.object(LicenseBuilder, "build") as build:
         factory.create_license()

@@ -1,4 +1,4 @@
-from .factories.base import ProjectFactory
+from .factory import ProjectFactory
 
 
 class Director:

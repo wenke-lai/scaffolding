@@ -36,6 +36,7 @@ def test_project_builder(folder: Path):
     blueprint = bp.Blueprint(
         project=bp.Project(folder=folder, name=folder.name, license="mit"),
         author=bp.Author(name="tester", email="tester@example.com"),
+        language="python",
     )
 
     # create the folder cause the create_directory method is mocked

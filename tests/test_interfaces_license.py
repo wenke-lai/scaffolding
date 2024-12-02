@@ -81,6 +81,7 @@ def test_license_builder(folder: Path):
             name="tester",
             email="tester@example.com",
         ),
+        language="python",
     )
 
     builder = LicenseBuilder(blueprint=blueprint)

@@ -19,3 +19,7 @@ class Author:
 class Blueprint:
     project: Project
     author: Author
+
+    language: str
+    dependencies: list[str] | None = None
+    dev_dependencies: list[str] | None = None
