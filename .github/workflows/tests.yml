@@ -2,7 +2,8 @@ name: Python Tests
 
 on:
   push:
-    branches: [main]
+    branches:
+      - "**"
   pull_request:
     branches: [main]
 
@@ -29,4 +30,4 @@ jobs:
 
       - name: Run tests
         run: |
-          pytest
+          uv run pytest
