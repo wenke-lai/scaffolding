@@ -1,7 +1,7 @@
 from .factory import ProjectFactory
 
 
-class Director:
+class ProjectDirector:
     def __init__(self, factory: ProjectFactory) -> None:
         self.factory = factory
 
