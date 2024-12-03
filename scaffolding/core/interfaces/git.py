@@ -27,18 +27,28 @@ class Repository:
         value: str | None = None,
         overwrite_ok: bool = False,
     ) -> None:
+        logger.debug(
+            "`git config`",
+            section=section,
+            field=field,
+            value=value,
+            overwrite_ok=overwrite_ok,
+        )
         if value is None:
+            logger.warning("value is None")
             return
         with self.repo.config_reader() as reader, self.repo.config_writer() as writer:
             try:
                 exists_value = reader.get_value(section, field)
                 if overwrite_ok or not exists_value:
+                    logger.debug("setting value")
                     writer.set_value(section, field, value)
-                return
+                else:
+                    logger.warning(
+                        "`git config`", section=section, field=field, value=value
+                    )
             except (NoSectionError, NoOptionError):
                 writer.set_value(section, field, value)
-
-        logger.warning("`git config`", section=section, field=field)
 
     def commit(self, message: str) -> None:
         if self.repo.is_dirty(untracked_files=True):

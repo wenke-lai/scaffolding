@@ -1,4 +1,8 @@
+import structlog
+
 from .factory import ProjectFactory
+
+logger = structlog.get_logger(__name__)
 
 
 class ProjectDirector:
@@ -6,6 +10,7 @@ class ProjectDirector:
         self.factory = factory
 
     def process(self) -> None:
+        logger.debug("director process")
         self.factory.create_project()
         self.factory.create_language()
         self.factory.create_license()
