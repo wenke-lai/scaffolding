@@ -2,6 +2,8 @@
 
 The director is responsible for creating the project, language, license, and git repository.
 
+!! Note: When writing operations, respect and implement all existing configuration settings.
+
 ### Quick Start
 
 ```python

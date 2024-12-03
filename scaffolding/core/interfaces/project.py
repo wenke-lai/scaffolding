@@ -5,7 +5,7 @@ from ..blueprint import Blueprint
 
 class Project:
     def create_directory(self, folder: Path) -> None:
-        folder.mkdir(parents=True, exist_ok=False)
+        folder.mkdir(parents=True, exist_ok=True)
 
     def create_readme(self, folder: Path) -> None:
         readme = folder / "README.md"

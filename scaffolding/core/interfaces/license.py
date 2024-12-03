@@ -28,8 +28,6 @@ class License:
 
     def save(self, folder: Path) -> None:
         file = folder / "LICENSE"
-        if file.exists():
-            raise FileExistsError(f"License file already exists in {folder}")
         with open(file, "w") as fw:
             fw.write(self.content)
 
@@ -37,9 +35,9 @@ class License:
 class MITLicense(License):
     license_key = "mit"
 
-    def implement(self, fullname: str, *args, **kwargs) -> None:
+    def implement(self, fullname: str | None, *args, **kwargs) -> None:
         self.content = self.content.replace("[year]", str(date.today().year))
-        if fullname is not None:
+        if fullname:
             self.content = self.content.replace("[fullname]", fullname)
 
 

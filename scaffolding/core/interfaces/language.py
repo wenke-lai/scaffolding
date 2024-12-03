@@ -1,4 +1,3 @@
-import os
 import subprocess
 from pathlib import Path
 
@@ -16,9 +15,8 @@ class Python(Language):
 
     def initialize(self) -> None:
         subprocess.run(["uv", "init"], check=True, cwd=self.cwd)
-        demo_file = self.cwd / "hello.py"
-        if demo_file.is_file():
-            os.remove(demo_file)
+        # remove hello.py that is a demo script created by uv init
+        (self.cwd / "hello.py").unlink(missing_ok=True)
 
     def install_dependencies(self, dependencies: dict[str, str]) -> None:
         args = [f"{name}=={version}" for name, version in dependencies.items()]

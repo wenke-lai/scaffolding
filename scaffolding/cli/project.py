@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 from typing import Annotated
 
@@ -9,6 +10,8 @@ from ..core.director import ProjectDirector
 from ..core.factory import ProjectFactory
 from .constant import TEMPLATES
 from .template import Template
+
+logger = logging.getLogger(__name__)
 
 app = typer.Typer()
 
@@ -26,10 +29,10 @@ def create(
             # standard template
             path = (TEMPLATES / value).with_suffix(".toml")
         case _:
+            logger.error("invalid template %s", template)
             raise typer.Abort()
-    config = tomllib.loads(path.read_text())
 
-    # create project
+    config = tomllib.loads(path.read_text())
     blueprint = Blueprint(folder=project_folder, **config)
     factory = ProjectFactory(blueprint)
     director = ProjectDirector(factory)
