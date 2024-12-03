@@ -1,19 +1,21 @@
-import logging
 from configparser import NoOptionError, NoSectionError
 from pathlib import Path
 
+import structlog
 from git import Repo
 
 from ..blueprint import Blueprint
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 class Repository:
     def __init__(self) -> None:
         self.repo = None
+        self.log = None
 
     def initialize(self, folder: Path) -> None:
+        logger.debug("`git init`", folder=folder, git_exists=(folder / ".git").exists())
         if (folder / ".git").exists():
             raise FileExistsError(f"Git repository already exists in {folder}")
         self.repo = Repo.init(folder)
@@ -36,7 +38,7 @@ class Repository:
             except (NoSectionError, NoOptionError):
                 writer.set_value(section, field, value)
 
-        logger.warning(f"Git config `{section}.{field}` already exists")
+        logger.warning("`git config`", section=section, field=field)
 
     def commit(self, message: str) -> None:
         if self.repo.is_dirty(untracked_files=True):
