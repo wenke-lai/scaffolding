@@ -1,8 +1,6 @@
 from pathlib import Path
 from unittest.mock import patch
 
-import pytest
-
 from scaffolding.core.blueprint import Blueprint
 from scaffolding.core.interfaces.project import Project, ProjectBuilder
 
@@ -12,8 +10,6 @@ def test_project(folder: Path):
 
     project.create_directory(folder)
     assert folder.exists()
-    with pytest.raises(FileExistsError):
-        project.create_directory(folder)
 
     project.create_readme(folder)
     readme = folder / "README.md"

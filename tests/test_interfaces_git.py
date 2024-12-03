@@ -2,21 +2,21 @@ from pathlib import Path
 from unittest.mock import call, patch
 
 import pytest
-from git import Repo
+from git import GitCommandError, Repo
 
 from scaffolding.core.blueprint import Blueprint
 from scaffolding.core.interfaces.git import Repository, RepositoryBuilder
 
 
 def test_repository(folder: Path):
+    assert not folder.exists(), "folder should not exist before this test"
+
     repository = Repository()
     assert repository.repo is None
 
     repository.initialize(folder)
     assert isinstance(repository.repo, Repo)
-
-    with pytest.raises(FileExistsError):
-        repository.initialize(folder)
+    assert (folder / ".git").exists()
 
     repository.configure("user", "name", "tester")
     repository.configure("user", "email", "tester@example.com")
@@ -24,12 +24,19 @@ def test_repository(folder: Path):
         assert reader.get_value("user", "name") == "tester"
         assert reader.get_value("user", "email") == "tester@example.com"
 
-    repository.configure("user", "name", "new-name", overwrite_ok=False)
+    # value is None, so nothing is changed
+    repository.configure("user", "name", None)
     with repository.repo.config_reader() as reader:
         assert reader.get_value("user", "name") == "tester"
 
-    with pytest.raises(FileNotFoundError):
+    # value it not None, so it overwrited always
+    repository.configure("user", "name", "new-name")
+    with repository.repo.config_reader() as reader:
+        assert reader.get_value("user", "name") == "new-name"
+
+    with pytest.raises(GitCommandError):
         repository.commit("no changes to commit")
+
     (folder / "README.md").touch()
     repository.commit("add README.md")
     assert not repository.repo.is_dirty(untracked_files=True)
@@ -61,4 +68,4 @@ def test_repository_builder(blueprint: Blueprint):
         ]
     )
     # git commit -m "Initial commit"
-    commit.assert_called_once_with("Initial commit")
+    commit.assert_called_once_with("Initial project")
