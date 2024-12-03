@@ -14,6 +14,7 @@ def test_repository(folder: Path):
 
     repository.initialize(folder)
     assert isinstance(repository.repo, Repo)
+
     with pytest.raises(FileExistsError):
         repository.initialize(folder)
 
@@ -36,6 +37,9 @@ def test_repository(folder: Path):
 
 
 def test_repository_builder(blueprint: Blueprint):
+    # create the folder cause the Repository.initialize method is mocked
+    blueprint.folder.mkdir(parents=True, exist_ok=False)
+
     blueprint.author.name = "tester"
     blueprint.author.email = "tester@example.com"
 

@@ -60,6 +60,8 @@ def test_gpl3_license():
 
 
 def test_license_builder(blueprint: Blueprint):
+    blueprint.folder.mkdir(parents=True, exist_ok=False)
+
     builder = LicenseBuilder(blueprint=blueprint)
     with (
         patch.object(MITLicense, "download") as download,
