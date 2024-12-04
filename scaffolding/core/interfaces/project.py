@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from ..adapter.scaffold_manager import ReadmeManager
 from ..blueprint import Blueprint
 
 
@@ -8,9 +9,8 @@ class Project:
         folder.mkdir(parents=True, exist_ok=True)
 
     def create_readme(self, folder: Path) -> None:
-        readme = folder / "README.md"
-        with open(readme, "w") as fw:
-            fw.write(f"# {folder.name}")
+        manager = ReadmeManager()
+        manager.create_readme(folder)
 
 
 class ProjectBuilder:

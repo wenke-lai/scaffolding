@@ -1,56 +1,22 @@
-from datetime import date
 from pathlib import Path
-from urllib.parse import urljoin
 
-import httpx
-
+from ..adapter.license_manager import MitLicenseManager
 from ..blueprint import Blueprint
-
-GITHUB_API_ENDPOINT: str = "https://api.github.com"
 
 
 class License:
-    license_key: str
-
     def __init__(self) -> None:
-        self.content = ""
+        # todo: make it dynamic
+        self.license_manager = MitLicenseManager()
 
     def download(self) -> None:
-        assert self.license_key, "License key is not set"
-        response = httpx.get(
-            urljoin(GITHUB_API_ENDPOINT, f"/licenses/{self.license_key}"), timeout=10
-        )
-        response.raise_for_status()
-        self.content = response.json()["body"]
+        self.license_manager.download()
 
     def implement(self, *args, **kwargs) -> None:
-        pass
+        self.license_manager.implement(*args, **kwargs)
 
     def save(self, folder: Path) -> None:
-        file = folder / "LICENSE"
-        with open(file, "w") as fw:
-            fw.write(self.content)
-
-
-class MITLicense(License):
-    license_key = "mit"
-
-    def implement(self, fullname: str | None, *args, **kwargs) -> None:
-        self.content = self.content.replace("[year]", str(date.today().year))
-        if fullname:
-            self.content = self.content.replace("[fullname]", fullname)
-
-
-class Apache2License(License):
-    license_key = "apache-2.0"
-
-
-class GPL2License(License):
-    license_key = "gpl-2.0"
-
-
-class GPL3License(License):
-    license_key = "gpl-3.0"
+        self.license_manager.save(folder)
 
 
 class LicenseBuilder:
@@ -58,19 +24,7 @@ class LicenseBuilder:
         self.blueprint = blueprint
 
     def build(self) -> None:
-        match self.blueprint.project.license:
-            case "MIT" | "mit":
-                license = MITLicense()
-            case "Apache-2.0" | "apache-2.0":
-                license = Apache2License()
-            case "GPL-2.0" | "gpl-2.0":
-                license = GPL2License()
-            case "GPL-3.0" | "gpl-3.0":
-                license = GPL3License()
-            case _:
-                # no license
-                return
-
+        license = License()
         license.download()
         license.implement(fullname=self.blueprint.author.name)
         license.save(self.blueprint.folder)
