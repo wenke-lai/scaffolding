@@ -1,4 +1,3 @@
-import subprocess
 from pathlib import Path
 
 from ..adapter.package_manager import Uv
@@ -13,6 +12,7 @@ class Language:
 class Python(Language):
     def __init__(self, cwd: Path):
         super().__init__(cwd)
+        # todo: make it dynamic
         self.package_manager = Uv()
 
     def setup(self) -> None:
