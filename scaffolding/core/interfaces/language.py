@@ -1,6 +1,7 @@
 import subprocess
 from pathlib import Path
 
+from ..adapter.package_manager import Uv
 from ..blueprint import Blueprint
 
 
@@ -10,21 +11,24 @@ class Language:
 
 
 class Python(Language):
+    def __init__(self, cwd: Path):
+        super().__init__(cwd)
+        self.package_manager = Uv()
+
     def setup(self) -> None:
-        subprocess.run(["uv", "--version"], check=True, cwd=self.cwd)
+        if not self.package_manager.exists():
+            self.package_manager.install()
 
     def initialize(self) -> None:
-        subprocess.run(["uv", "init"], check=True, cwd=self.cwd)
+        self.package_manager.init(self.cwd)
         # remove hello.py that is a demo script created by uv init
         (self.cwd / "hello.py").unlink(missing_ok=True)
 
     def install_dependencies(self, dependencies: dict[str, str]) -> None:
-        args = [f"{name}=={version}" for name, version in dependencies.items()]
-        subprocess.run(["uv", "add", *args], check=True, cwd=self.cwd)
+        self.package_manager.add(self.cwd, dependencies)
 
     def install_dev_dependencies(self, dev_dependencies: dict[str, str]) -> None:
-        args = [f"{name}=={version}" for name, version in dev_dependencies.items()]
-        subprocess.run(["uv", "add", *args], check=True, cwd=self.cwd)
+        self.package_manager.add(self.cwd, dev_dependencies, dev=True)
 
 
 class LanguageBuilder:
