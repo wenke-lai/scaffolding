@@ -9,7 +9,7 @@ class System:
         self.timeout = timeout
         self.check = check
 
-    def invoke(self, *commands, **kwargs) -> subprocess.CompletedProcess:
+    def invoke(self, commands, **kwargs) -> subprocess.CompletedProcess:
         return subprocess.run(
             commands, timeout=self.timeout, check=self.check, **kwargs
         )
