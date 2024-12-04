@@ -1,8 +1,7 @@
 import logging
 from pathlib import Path
 
-from git import Repo
-
+from ..adapter.git import Git
 from ..blueprint import Blueprint
 
 logger = logging.getLogger(__name__)
@@ -10,20 +9,21 @@ logger = logging.getLogger(__name__)
 
 class Repository:
     def __init__(self) -> None:
-        self.repo = None
+        self.git = Git()
 
     def initialize(self, folder: Path) -> None:
-        self.repo = Repo.init(folder, mkdir=True)
+        if not self.git.exists():
+            # todo: skip install git command, needs root privileges
+            raise RuntimeError("Git is not installed")
+
+        self.git.init(folder)
 
     def configure(self, section: str, field: str, value: str | None) -> None:
-        if value is None:
-            return
-        with self.repo.config_writer() as writer:
-            writer.set_value(section, field, value)
+        self.git.write_config(section, field, value)
 
     def commit(self, message: str) -> None:
-        self.repo.git.add(["."])
-        self.repo.git.commit("-m", message)
+        self.git.add()  # add all untracked files
+        self.git.commit(message)
 
 
 class RepositoryBuilder:
