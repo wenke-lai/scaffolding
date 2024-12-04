@@ -1,8 +1,7 @@
 from pathlib import Path
 from unittest.mock import call, patch
 
-import pytest
-from git import GitCommandError, Repo
+from git import Repo
 
 from scaffolding.core.adapter.git import Git
 from scaffolding.core.blueprint import Blueprint

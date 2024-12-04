@@ -2,6 +2,7 @@ import logging
 from pathlib import Path
 
 from ..adapter.git import Git
+from ..adapter.gitignore_manager import PythonGitIgnoreManager
 from ..blueprint import Blueprint
 
 logger = logging.getLogger(__name__)
@@ -25,6 +26,11 @@ class Repository:
         self.git.add()  # add all untracked files
         self.git.commit(message)
 
+    def add_gitignore(self, folder: Path) -> None:
+        # todo: make this dynamic
+        manager = PythonGitIgnoreManager()
+        manager.download(folder)
+
 
 class RepositoryBuilder:
     def __init__(self, blueprint: Blueprint) -> None:
@@ -33,6 +39,7 @@ class RepositoryBuilder:
     def build(self) -> None:
         repository = Repository()
         repository.initialize(self.blueprint.folder)
+        repository.add_gitignore(self.blueprint.folder)
         if self.blueprint.author.name:
             repository.configure("user", "name", self.blueprint.author.name)
         if self.blueprint.author.email:

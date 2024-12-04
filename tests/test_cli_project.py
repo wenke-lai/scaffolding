@@ -12,3 +12,9 @@ runner = CliRunner()
 def test_standard_project(folder: Path):
     result = runner.invoke(app, ["project", "create", str(folder), "python"])
     assert result.exit_code == 0, result.stdout
+
+    assert (folder / ".gitignore").exists()
+    assert (folder / "README.md").exists()
+    assert (folder / "pyproject.toml").exists()
+    assert (folder / "uv.lock").exists()
+    assert (folder / ".git").is_dir()
