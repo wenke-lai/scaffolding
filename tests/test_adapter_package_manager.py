@@ -21,11 +21,9 @@ def test_python_uv(mock: Mock, folder: Path):
     upgrade_command = ["uv", "self", "update"]
     mock.assert_called_with(upgrade_command)
 
-    with patch.object(Path, "unlink") as unlink:
-        uv.init(folder)
-        init_command = ["uv", "init", folder]
-        mock.assert_called_with(init_command)
-        unlink.assert_called_once()
+    uv.init(folder)
+    init_command = ["uv", "init"]
+    mock.assert_called_with(init_command, cwd=folder)
 
     packages = {
         "package-1": None,
@@ -35,7 +33,7 @@ def test_python_uv(mock: Mock, folder: Path):
         "package-5": ">=1.1.1,<2.0.0",
         "package-6": "1.1.1",
     }
-    uv.add(packages)
+    uv.add(folder, packages)
     add_command = [
         "uv",
         "add",
@@ -46,16 +44,16 @@ def test_python_uv(mock: Mock, folder: Path):
         "package-5" + packages["package-5"],
         f"package-6>={packages['package-6']}",
     ]
-    mock.assert_called_with(add_command)
+    mock.assert_called_with(add_command, cwd=folder)
 
-    uv.add({"package": None}, dev=True)
+    uv.add(folder, {"package": None}, dev=True)
     add_command = ["uv", "add", "--dev", "package"]
-    mock.assert_called_with(add_command)
+    mock.assert_called_with(add_command, cwd=folder)
 
-    uv.remove(["package"])
+    uv.remove(folder, ["package"])
     remove_command = ["uv", "remove", "package"]
-    mock.assert_called_with(remove_command)
+    mock.assert_called_with(remove_command, cwd=folder)
 
-    uv.remove(["package"], dev=True)
+    uv.remove(folder, ["package"], dev=True)
     remove_command = ["uv", "remove", "--dev", "package"]
-    mock.assert_called_with(remove_command)
+    mock.assert_called_with(remove_command, cwd=folder)

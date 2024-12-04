@@ -19,22 +19,23 @@ class Uv(PackageManager):
         command = ["uv", "self", "update"]
         self.system.invoke(command)
 
-    def init(self, folder: Path) -> None:
-        folder.mkdir(parents=True, exist_ok=True)
-        command = ["uv", "init", folder]
-        self.system.invoke(command)
-        (folder / "hello.py").unlink()
+    def init(self, cwd: Path) -> None:
+        cwd.mkdir(parents=True, exist_ok=True)
+        command = ["uv", "init"]
+        self.system.invoke(command, cwd=cwd)
 
-    def add(self, dependencies: dict[str, str | None], dev: bool = False) -> None:
+    def add(
+        self, cwd: Path, dependencies: dict[str, str | None], dev: bool = False
+    ) -> None:
         options = ["--dev"] if dev else []
         dependencies = self.serialize_dependencies(dependencies)
         command = ["uv", "add", *options, *dependencies]
-        self.system.invoke(command)
+        self.system.invoke(command, cwd=cwd)
 
-    def remove(self, dependencies: list[str], dev: bool = False) -> None:
+    def remove(self, cwd: Path, dependencies: list[str], dev: bool = False) -> None:
         options = ["--dev"] if dev else []
         command = ["uv", "remove", *options, *dependencies]
-        self.system.invoke(command)
+        self.system.invoke(command, cwd=cwd)
 
 
 # class Poetry(PackageManager):

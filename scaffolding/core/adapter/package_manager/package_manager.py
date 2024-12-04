@@ -7,7 +7,6 @@ from ..system import System
 class PackageManager(ABC):
     def __init__(self) -> None:
         self.system = System()
-        self.cwd = Path.cwd()
 
     @abstractmethod
     def exists(self) -> bool:
