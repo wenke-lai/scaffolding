@@ -5,7 +5,7 @@ from git import Repo
 from .system import System
 
 
-class Git:
+class GitManager:
     def __init__(self) -> None:
         self.repo: Repo | None = None
         self.system = System()
