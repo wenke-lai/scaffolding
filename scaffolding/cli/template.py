@@ -1,35 +1,30 @@
 from enum import StrEnum
+from pathlib import Path
 
+import click
 import tomllib
-import typer
 
-from .constant import TEMPLATE_SUFFIX, TEMPLATES
-
-app = typer.Typer()
+TEMPLATE_DIR = Path(__file__).parent.parent / "templates"
 
 
-class Template(StrEnum):
+class TemplateEnum(StrEnum):
     PYTHON = "python"
 
 
-def load_template(template: Template) -> dict:
-    path = (TEMPLATES / template.value).with_suffix(TEMPLATE_SUFFIX)
-    with open(path, "rb") as fr:
-        return tomllib.load(fr)
-
-
-@app.command()
-def get(template: Template, to_file: bool = False):
-    path = (TEMPLATES / template.value).with_suffix(TEMPLATE_SUFFIX)
-    assert path.is_file(), f"Template {template.value} not found"
-    with open(path, "r", encoding="utf-8") as fr:
-        if to_file:
-            with open(f"template-{template.value}.toml", "w", encoding="utf-8") as fw:
-                fw.write(fr.read())
-        else:
-            print(fr.read())
-
-
-@app.command()
-def check(template: Template):
+@click.group()
+def template():
     pass
+
+
+@template.command()
+def list():
+    for template in TEMPLATE_DIR.iterdir():
+        print(template.name)
+
+
+@template.command()
+@click.argument("template", type=click.Choice(TemplateEnum))
+def get(template: TemplateEnum):
+    path = (TEMPLATE_DIR / template.value).with_suffix(".toml")
+    settings = tomllib.loads(path.read_text())
+    print(settings)

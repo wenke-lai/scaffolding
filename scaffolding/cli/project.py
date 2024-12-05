@@ -1,39 +1,56 @@
-import logging
+from enum import StrEnum
 from pathlib import Path
-from typing import Annotated
 
-import tomllib
-import typer
-
-from ..core.blueprint import Blueprint
-from ..core.director import ProjectDirector
-from ..core.factory import ProjectFactory
-from .constant import TEMPLATES
-from .template import Template
-
-logger = logging.getLogger(__name__)
-
-app = typer.Typer()
+import click
+from core import managers
+from core.builders import LanguageBuilder
+from core.director import PythonDirector
 
 
-@app.command()
+class PackageManagerEnum(StrEnum):
+    UV = "uv"
+
+
+class FrameworkEnum(StrEnum):
+    DJANGO = "django"
+
+
+class LicenseEnum(StrEnum):
+    MIT = "mit"
+    APACHE2 = "apache-2.0"
+    GPL2 = "gpl-2.0"
+    GPL3 = "gpl-3.0"
+
+
+@click.group()
+def project():
+    pass
+
+
+@project.command()
+@click.argument("folder", type=click.Path(file_okay=False, dir_okay=True))
+@click.option(
+    "--package-manager", "-p", required=True, type=click.Choice(PackageManagerEnum)
+)
+@click.option("--framework", "-f", type=click.Choice(FrameworkEnum), default=None)
+@click.option("--license", "-l", type=click.Choice(LicenseEnum), default=None)
 def create(
-    project_folder: Annotated[Path, typer.Argument(file_okay=False)],
-    template: str,
+    folder: Path,
+    package_manager: PackageManagerEnum,
+    framework: FrameworkEnum,
+    license: LicenseEnum,
 ):
-    match template:
-        case value if Path(value).is_file():
-            # custom template
-            path = Path(value)
-        case value if value in Template:
-            # standard template
-            path = (TEMPLATES / value).with_suffix(".toml")
+    match package_manager:
+        case PackageManagerEnum.UV:
+            builder = LanguageBuilder(managers.Uv())
+            director = PythonDirector(builder)
         case _:
-            logger.error("invalid template %s", template)
-            raise typer.Abort()
+            raise RuntimeError(f"Unsupported package manager: {package_manager}")
 
-    config = tomllib.loads(path.read_text())
-    blueprint = Blueprint(folder=project_folder, **config)
-    factory = ProjectFactory(blueprint)
-    director = ProjectDirector(factory)
-    director.process()
+    director.create_scaffold_file(folder, license_key=license.value)
+    match framework:
+        case FrameworkEnum.DJANGO:
+            director.create_django_project(folder)
+        case _:
+            director.create_python_project(folder)
+    director.create_initial_commit(folder)
