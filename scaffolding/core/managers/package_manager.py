@@ -24,16 +24,16 @@ class PackageManager(ABC):
         pass
 
     @abstractmethod
-    def init(self, folder: Path) -> None:
+    def init(self, cwd: Path) -> None:
         """create a new project"""
         pass
 
     @abstractmethod
-    def add(self, folder: Path, dependencies: list[str], dev=False) -> None:
+    def add(self, cwd: Path, dependencies: list[str], dev=False) -> None:
         """add dependencies to the project"""
         pass
 
     @abstractmethod
-    def remove(self, folder: Path, dependencies: list[str], dev=False) -> None:
+    def remove(self, cwd: Path, dependencies: list[str], dev=False) -> None:
         """remove dependencies from the project"""
         pass
